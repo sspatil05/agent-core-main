@@ -1,0 +1,22 @@
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # Only publish if a package-index token is configured. We distribute
+    # agent-core by git tag today, so with no token a tag just verifies the build.
+    env:
+      HAS_TOKEN: ${{ secrets.PYPI_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv build
+      - name: Publish to index
+        if: env.HAS_TOKEN == 'true'
+        run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
